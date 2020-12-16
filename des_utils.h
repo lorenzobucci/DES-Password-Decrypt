@@ -14,8 +14,7 @@ uint64_t des_generate_key();
 
 uint64_t des_generate_key_length(int key_length);
 
-void chop_into_blocks(char *data, int length, uint64_t **blocks,
-                      int *out_block_count);
+void chop_into_blocks(char *data, int length, uint64_t **blocks, int *out_block_count);
 
 
 uint64_t des_generate_key() {
@@ -35,8 +34,7 @@ uint64_t des_generate_key_length(int key_length) {
     return key;
 }
 
-void chop_into_blocks(char *data, int length, uint64_t **blocks,
-                      int *out_block_count) {
+void chop_into_blocks(char *data, int length, uint64_t **blocks, int *out_block_count) {
     double d = length / 8.0;
     int block_count = (int) (ceil(d));
     char *filled = (char *) _malloc(block_count * 8);
@@ -58,4 +56,3 @@ void chop_into_blocks(char *data, int length, uint64_t **blocks,
     }
     *out_block_count = block_count;
 }
-

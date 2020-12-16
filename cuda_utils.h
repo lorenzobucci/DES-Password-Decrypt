@@ -26,8 +26,7 @@ void _cudaMemset(void *dest, int val, size_t size) {
     }
 }
 
-void _cudaMemcpy(void *dest, const void *src, size_t size,
-                 cudaMemcpyKind kind) {
+void _cudaMemcpy(void *dest, const void *src, size_t size, cudaMemcpyKind kind) {
     cudaError_t cudaStatus = cudaMemcpy(dest, src, size, kind);
     if (cudaStatus != cudaSuccess) {
         printf("%s\n", cudaGetErrorString(cudaStatus));

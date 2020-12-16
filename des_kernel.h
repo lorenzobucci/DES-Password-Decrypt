@@ -8,14 +8,12 @@
 #include "c_utils.h"
 #include "des.h"
 
-__global__ void cuda_des_encode_block(uint64_t block, uint64_t key,
-                                      uint64_t *encoded);
+__global__ void cuda_des_encode_block(uint64_t block, uint64_t key, uint64_t *encoded);
 
 void run_des_encode_block(uint64_t key, uint64_t block, uint64_t *result);
 
 
-__global__ void cuda_des_encode_block(uint64_t block, uint64_t key,
-                                      uint64_t *encoded) {
+__global__ void cuda_des_encode_block(uint64_t block, uint64_t key, uint64_t *encoded) {
     uint64_t keys[16];
     des_create_subkeys(key, keys);
     uint64_t result = des_encode_block(block, keys);
