@@ -1,15 +1,10 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 
-#include "c_utils.h"
 #include "des.h"
-#include "des_utils.h"
-#include "bit_utils.h"
-#include "des_consts.h"
-#include "des_kernel.h"
-#include "cuda_utils.h"
+#include "utils.h"
 
 void parse_args(int argc, char **argv, int *key_length);
 
@@ -31,6 +26,7 @@ void usage(char *name) {
 }
 
 int main(int argc, char **argv) {
+    generatePasswords(100);
     int key_length;
     parse_args(argc, argv, &key_length);
     printf("Key length: %d \n", key_length);
