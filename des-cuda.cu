@@ -5,6 +5,8 @@
 
 #include "des.h"
 #include "utils.h"
+#include "cuda_utils.h"
+#include "des_kernel.h"
 
 void parse_args(int argc, char **argv, int *key_length);
 
@@ -26,36 +28,37 @@ void usage(char *name) {
 }
 
 int main(int argc, char **argv) {
-    generatePasswords(100);
+    //generatePasswords(100, "plaintextPasswords.txt");
     int key_length;
     parse_args(argc, argv, &key_length);
     printf("Key length: %d \n", key_length);
-    uint64_t key = des_generate_key();
-    uint64_t block = key; //0x0123456789ABCDEF;
-    uint64_t encoded = full_des_encode_block(key, block);
 
-    //_cudaSetDevice(0);
+    FILE *fPtr;
+    fPtr = fopen("plaintextPasswords.txt", "r");
+    if (fPtr == nullptr) {
+        printf("Unable to read file!");
+        exit(EXIT_FAILURE);
+    }
 
-    printf("Real key:\n");
-    bits_print_grouped(key, 8, 64);
-    printf("Encoded block:\n");
-    bits_print_grouped(encoded, 8, 64);
-    printf("Cracking...\n");
-    uint64_t cracked_key = key - 5;
+    char plaintextPassword[8];
+    fscanf(fPtr, "%s", plaintextPassword);
+    fclose(fPtr);
+
+    uint64_t passwordKey = *(uint64_t *) plaintextPassword;;
+    uint64_t encodedPassword = full_des_encode_block(passwordKey, passwordKey);
+
+    /* START CRACKING */
+    _cudaSetDevice(0);
 
     clock_t start = clock();
-    for (int i = 0; i < 10; i++) {
-        uint64_t decrypted_block = 0;
-        //run_des_encode_block(cracked_key, block, &decrypted_block);
-        decrypted_block = full_des_encode_block(cracked_key, cracked_key);
-        if (decrypted_block == encoded) {
-            printf("Found !! iteration: %d\n", i);
-            printf("Cracked key:\n");
-            bits_print_grouped(cracked_key, 8, 64);
-            printf("Cracked block:\n");
-            bits_print_grouped(decrypted_block, 8, 64);
-        }
-        cracked_key++;
+
+    uint64_t crackedKey = 0;
+    uint64_t encodedCrackedKey = 0;
+    run_des_encode_block(crackedKey, crackedKey, &encodedCrackedKey);
+    while (encodedCrackedKey != encodedPassword) {
+        crackedKey++;
+        encodedCrackedKey = full_des_encode_block(crackedKey, crackedKey);
+        run_des_encode_block(crackedKey, crackedKey, &encodedCrackedKey);
     }
 
     clock_t end = clock();

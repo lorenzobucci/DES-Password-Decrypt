@@ -10,6 +10,14 @@
 
 const int MB = 1024 * 1024;
 
+void _cudaSetDevice(int device) {
+    cudaError_t cudaStatus = cudaSetDevice(device);
+    if (cudaStatus != cudaSuccess) {
+        printf("%s\n", cudaGetErrorString(cudaStatus));
+        ERR("cudaSetDevice failed!\n");
+    }
+}
+
 void _cudaMalloc(void **dest, size_t size) {
     cudaError_t cudaStatus = cudaMalloc(dest, size);
     if (cudaStatus != cudaSuccess) {
