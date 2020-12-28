@@ -12,7 +12,7 @@ __device__ void cudaDesEncodeBlock(uint64_t block, uint64_t key, uint64_t *encod
 
 void runDesEncodeBlock(uint64_t key, uint64_t block, uint64_t *result);
 
-__global__ void cudaHackPassword(uint64_t encodedPassword, int *foundFlag, uint64_t *result);
+__global__ void cudaHackPassword(int *foundFlag, uint64_t *result);
 
 
 __device__ void cudaDesEncodeBlock(uint64_t block, uint64_t key, uint64_t *encoded) {
@@ -33,17 +33,18 @@ void runDesEncodeBlock(uint64_t key, uint64_t block, uint64_t *result) {
     cudaFree(dev_result);
 }
 
-__global__ void cudaHackPassword(uint64_t encodedPassword, int *foundFlag, uint64_t *result) {
+__global__ void cudaHackPassword(int *foundFlag, uint64_t *result) {
     uint64_t crackedKey = blockIdx.x * blockDim.x + threadIdx.x;
     uint64_t encodedCrackedKey = 0;
     bool overflow = false;
 
     while (*foundFlag == 0 && !overflow) {
         cudaDesEncodeBlock(crackedKey, crackedKey, &encodedCrackedKey);
+
         /*if(blockIdx.x * blockDim.x + threadIdx.x != crackedKey)
             printf("Thread %d is on key %llu\n", blockIdx.x * blockDim.x + threadIdx.x, crackedKey);*/
 
-        if (encodedCrackedKey == encodedPassword) {
+        if (encodedCrackedKey == devEncodedPassword) {
             atomicCAS(foundFlag, 0, 1);
             *result = crackedKey;
             printf("Found!\n");

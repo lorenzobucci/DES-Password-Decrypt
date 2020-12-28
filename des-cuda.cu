@@ -49,6 +49,7 @@ int main(int argc, char **argv) {
 
     /* START CRACKING */
     _cudaSetDevice(0);
+    cudaMemcpyToSymbol(devEncodedPassword, &encodedPassword, sizeof(uint64_t));
 
     int *foundFlag;
     _cudaMalloc((void **) &foundFlag, sizeof(int));
@@ -57,11 +58,12 @@ int main(int argc, char **argv) {
     uint64_t *devResult;
     _cudaMalloc((void **) &devResult, sizeof(uint64_t));
 
-    clock_t start = clock();
-
     dim3 dimGrid = 1 << 21; //2^
     dim3 dimBlock = 1 << 10; //2^
-    cudaHackPassword<<<dimGrid, dimBlock>>>(encodedPassword, foundFlag, devResult);
+
+    clock_t start = clock();
+
+    cudaHackPassword<<<dimGrid, dimBlock>>>(foundFlag, devResult);
     _cudaDeviceSynchronize("cudaHackPassword");
 
     clock_t end = clock();

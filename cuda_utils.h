@@ -3,12 +3,14 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#include <stdio.h>
+#include <cstdio>
 #include <cmath>
 
 #include "c_utils.h"
 
 const int MB = 1024 * 1024;
+
+__constant__ uint64_t devEncodedPassword;
 
 void _cudaSetDevice(int device) {
     cudaError_t cudaStatus = cudaSetDevice(device);
