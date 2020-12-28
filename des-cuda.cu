@@ -50,18 +50,28 @@ int main(int argc, char **argv) {
     /* START CRACKING */
     _cudaSetDevice(0);
 
+    int *foundFlag;
+    _cudaMalloc((void **) &foundFlag, sizeof(int));
+    _cudaMemset(foundFlag, 0, sizeof(int));
+
+    uint64_t *devResult;
+    _cudaMalloc((void **) &devResult, sizeof(uint64_t));
+
     clock_t start = clock();
 
-    uint64_t crackedKey = 0;
-    uint64_t encodedCrackedKey = 0;
-    run_des_encode_block(crackedKey, crackedKey, &encodedCrackedKey);
-    while (encodedCrackedKey != encodedPassword) {
-        crackedKey++;
-        encodedCrackedKey = full_des_encode_block(crackedKey, crackedKey);
-        run_des_encode_block(crackedKey, crackedKey, &encodedCrackedKey);
-    }
+    dim3 dimGrid = 1 << 21; //2^
+    dim3 dimBlock = 1 << 10; //2^
+    cudaHackPassword<<<dimGrid, dimBlock>>>(encodedPassword, foundFlag, devResult);
+    _cudaDeviceSynchronize("cudaHackPassword");
 
     clock_t end = clock();
+
+    uint64_t foundKey;
+
+    _cudaMemcpy(&foundKey, devResult, sizeof(uint64_t), cudaMemcpyDeviceToHost);
+    cudaFree(foundFlag);
+    cudaFree(devResult);
+
     float seconds = (float) (end - start) / CLOCKS_PER_SEC;
     printf("key length: %d, seconds: %f\n", key_length, seconds);
 
