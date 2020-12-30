@@ -11,6 +11,7 @@
 const int MB = 1024 * 1024;
 
 __constant__ uint64_t devEncodedPassword;
+__constant__ int passwordsListSize;
 
 void _cudaSetDevice(int device) {
     cudaError_t cudaStatus = cudaSetDevice(device);
@@ -29,7 +30,7 @@ void _cudaMalloc(void **dest, size_t size) {
 }
 
 void _cudaMemset(void *dest, int val, size_t size) {
-    cudaError_t cudaStatus = cudaMemset(dest, 0, size);
+    cudaError_t cudaStatus = cudaMemset(dest, val, size);
     if (cudaStatus != cudaSuccess) {
         printf("%s\n", cudaGetErrorString(cudaStatus));
         ERR("cudaMemset failed!\n");

@@ -8,13 +8,6 @@
 #include "c_utils.h"
 #include "des.h"
 
-__device__ void cudaDesEncodeBlock(uint64_t block, uint64_t key, uint64_t *encoded);
-
-void runDesEncodeBlock(uint64_t key, uint64_t block, uint64_t *result);
-
-__global__ void cudaHackPassword(int *foundFlag, uint64_t *result);
-
-
 __device__ void cudaDesEncodeBlock(uint64_t block, uint64_t key, uint64_t *encoded) {
     uint64_t keys[16];
     des_create_subkeys(key, keys);
@@ -33,25 +26,30 @@ void runDesEncodeBlock(uint64_t key, uint64_t block, uint64_t *result) {
     cudaFree(dev_result);
 }
 
-__global__ void cudaHackPassword(int *foundFlag, uint64_t *result) {
-    uint64_t crackedKey = blockIdx.x * blockDim.x + threadIdx.x;
-    uint64_t encodedCrackedKey = 0;
-    bool overflow = false;
+__global__ void cudaHackPassword(const char *passwordsList, int *foundFlag, char *result) {
+    unsigned int currentIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    bool reachedLimit = false;
 
-    while (*foundFlag == 0 && !overflow) {
+    while (*foundFlag == 0 && !reachedLimit) {
+        uint64_t encodedCrackedKey = 0;
+        char crackedPassword[8];
+        for (int i = 0; i < 8; i++)
+            crackedPassword[i] = passwordsList[8 * currentIndex + i];
+
+        uint64_t crackedKey = *(uint64_t *) crackedPassword;
         cudaDesEncodeBlock(crackedKey, crackedKey, &encodedCrackedKey);
-
-        /*if(blockIdx.x * blockDim.x + threadIdx.x != crackedKey)
-            printf("Thread %d is on key %llu\n", blockIdx.x * blockDim.x + threadIdx.x, crackedKey);*/
 
         if (encodedCrackedKey == devEncodedPassword) {
             atomicCAS(foundFlag, 0, 1);
-            *result = crackedKey;
-            printf("Found!\n");
+            for (int currChar = 0; currChar < 8; currChar++)
+                result[currChar] = crackedPassword[currChar];
+            printf("Found %s!\n", result);
         }
         __threadfence();
 
-        (crackedKey + gridDim.x * blockDim.x) > crackedKey ? crackedKey += gridDim.x * blockDim.x : overflow = true;
+        (currentIndex + gridDim.x * blockDim.x) > passwordsListSize ? reachedLimit = true : currentIndex += gridDim.x *
+                                                                                                            blockDim.x;
+
     }
 
 }

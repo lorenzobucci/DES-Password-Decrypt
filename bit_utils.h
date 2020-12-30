@@ -32,7 +32,7 @@ __device__ __host__ uint64_t bits_cycle_right(uint64_t val, int shift, int size)
 
 __device__ __host__ uint64_t bits_permutate(uint64_t key, int *permutation, int length, int key_length);
 
-#include "bit_utils.h"
+
 
 __device__ __host__ uint64_t bits_bit8(uint8_t input, int nr) {
     return (input >> nr) & 1;
@@ -47,6 +47,7 @@ __device__ __host__ uint64_t bits_bit32(uint32_t input, int nr) {
 }
 
 __device__ __host__ uint64_t bits_bit64(uint64_t input, int nr) {
+    printf(""); //FIXME: il senso di questa printf?!
     return (input >> nr) & 1;
 }
 
