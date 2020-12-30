@@ -11,7 +11,7 @@
 const int MB = 1024 * 1024;
 
 __constant__ uint64_t devEncodedPassword;
-__constant__ int passwordsListSize;
+__constant__ unsigned int passwordsListSize;
 
 void _cudaSetDevice(int device) {
     cudaError_t cudaStatus = cudaSetDevice(device);

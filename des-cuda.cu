@@ -34,23 +34,23 @@ void usage(char *name) {
 
 int main(int argc, char **argv) {
 
-    int numberOfPasswords = 1 << 20;
+    unsigned int numberOfPasswords = 1 << 25;
 
-    string *passwordsList = new string[numberOfPasswords];
+    char *passwordsList = new char[8 * numberOfPasswords];
     generatePasswords(numberOfPasswords, passwordsList);
 
     int key_length;
     parse_args(argc, argv, &key_length);
-    printf("Key length: %d \n", key_length);
 
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<> distrib(0, (numberOfPasswords) - 1);
+    unsigned int randomIndex = distrib(gen) * 8;
 
-    string selectedPassword = passwordsList[distrib(gen)];
+    char *selectedPassword = &passwordsList[randomIndex];
 
     char _selectedPassword[9];
-    for (int i = 0; i < selectedPassword.size(); i++)
+    for (int i = 0; i < 8; i++)
         _selectedPassword[i] = selectedPassword[i];
     _selectedPassword[8] = '\0';
 
@@ -62,12 +62,11 @@ int main(int argc, char **argv) {
     /* START CRACKING */
     _cudaSetDevice(0);
     cudaMemcpyToSymbol(devEncodedPassword, &encodedPassword, sizeof(uint64_t));
-    cudaMemcpyToSymbol(passwordsListSize, &numberOfPasswords, sizeof(int));
+    cudaMemcpyToSymbol(passwordsListSize, &numberOfPasswords, sizeof(unsigned int));
 
     char *devPasswordsList;
     _cudaMalloc((void **) &devPasswordsList, (numberOfPasswords) * 8 * sizeof(char));
-    for (int i = 0; i < numberOfPasswords; i++)
-        _cudaMemcpy(&devPasswordsList[i * 8], passwordsList[i].c_str(), 8 * sizeof(char), cudaMemcpyHostToDevice);
+    _cudaMemcpy(devPasswordsList, passwordsList, (numberOfPasswords) * 8 * sizeof(char), cudaMemcpyHostToDevice);
 
     int *devFoundFlag;
     _cudaMalloc((void **) &devFoundFlag, sizeof(int));
@@ -89,13 +88,16 @@ int main(int argc, char **argv) {
     char foundPassword[9];
     foundPassword[8] = '\0';
 
-    _cudaMemcpy(&foundPassword, devResult, 8 * sizeof(char), cudaMemcpyDeviceToHost);
+    _cudaMemcpy(foundPassword, devResult, 8 * sizeof(char), cudaMemcpyDeviceToHost);
     cudaFree(devFoundFlag);
     cudaFree(devResult);
     cudaFree(devPasswordsList);
+    delete[] passwordsList;
 
     float seconds = (float) (end - start) / CLOCKS_PER_SEC;
-    printf("Found password: %s, seconds: %f\n", foundPassword, seconds);
+    printf("Found password: %s in %f seconds\n"
+           "Total number of passwords were: %d\n"
+           "Cracked password had index: %d", foundPassword, seconds, numberOfPasswords, randomIndex / 8);
 
     return EXIT_SUCCESS;
 }

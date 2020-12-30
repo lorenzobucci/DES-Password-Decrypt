@@ -47,8 +47,8 @@ __global__ void cudaHackPassword(const char *passwordsList, int *foundFlag, char
         }
         __threadfence();
 
-        (currentIndex + gridDim.x * blockDim.x) > passwordsListSize ? reachedLimit = true : currentIndex += gridDim.x *
-                                                                                                            blockDim.x;
+        (currentIndex + gridDim.x * blockDim.x) >= passwordsListSize ? reachedLimit = true : currentIndex += gridDim.x *
+                                                                                                             blockDim.x;
 
     }
 
