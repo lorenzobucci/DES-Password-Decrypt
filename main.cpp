@@ -1,11 +1,8 @@
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
 #include <cstdlib>
 #include <cstdio>
 
 #include "des.h"
 #include "utils.h"
-#include "cuda_utils.h"
 #include "des_kernel.h"
 
 void parse_args(int argc, char **argv, int *key_length);
