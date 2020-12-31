@@ -47,7 +47,6 @@ __device__ __host__ uint64_t bits_bit32(uint32_t input, int nr) {
 }
 
 __device__ __host__ uint64_t bits_bit64(uint64_t input, int nr) {
-    printf(""); //FIXME: il senso di questa printf?!
     return (input >> nr) & 1;
 }
 

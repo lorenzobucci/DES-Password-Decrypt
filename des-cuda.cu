@@ -34,7 +34,7 @@ void usage(char *name) {
 
 int main(int argc, char **argv) {
 
-    unsigned int numberOfPasswords = 1 << 25;
+    unsigned int numberOfPasswords = 1 << 27;
 
     char *passwordsList = new char[8 * numberOfPasswords];
     generatePasswords(numberOfPasswords, passwordsList);
