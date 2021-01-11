@@ -1,10 +1,10 @@
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <time.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstdint>
+#include <ctime>
+#include <cstring>
 
 #include "des_consts.h"
 #include "bit_utils.h"

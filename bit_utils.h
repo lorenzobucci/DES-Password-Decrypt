@@ -3,8 +3,8 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#include <stdio.h>
-#include <stdint.h>
+#include <cstdio>
+#include <cstdint>
 
 __device__ __host__ uint64_t bits_bit8(uint8_t input, int nr);
 

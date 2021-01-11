@@ -43,7 +43,6 @@ __global__ void cudaHackPassword(const char *passwordsList, int *foundFlag, char
             atomicCAS(foundFlag, 0, 1);
             for (int currChar = 0; currChar < 8; currChar++)
                 result[currChar] = crackedPassword[currChar];
-            printf("Found %s!\n", result);
         }
         __threadfence(); // halt the current thread until all previous writes to foundFlag are visible by other threads
 

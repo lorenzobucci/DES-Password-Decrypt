@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <string>
-#include <random>
+#include <array>
 
 #include "des.h"
 #include "utils.h"
@@ -15,6 +15,10 @@ using namespace std;
 void parse_args(int argc, char **argv, int *key_length);
 
 void usage(char *name);
+
+void cudaCracking(unsigned int numberOfPasswords, const char *passwordsList, uint64_t encodedPassword);
+
+void cpuCracking(unsigned int numberOfPasswords, const char *passwordsList, uint64_t encodedPassword);
 
 void parse_args(int argc, char **argv, int *key_length) {
     if (argc < 2) {
@@ -39,32 +43,54 @@ int main(int argc, char **argv) {
 
     /* PASSWORDS GENERATION */
 
-    unsigned int numberOfPasswords = 1 << 27; // 2^27
+    unsigned int numberOfPasswords = 1 << 20; // 2^20
+
+    printf("Generating %d passwords...\n", numberOfPasswords);
 
     char *passwordsList = new char[8 * numberOfPasswords];
     generatePasswords(numberOfPasswords, passwordsList);
 
     /* PASSWORD SELECTION */
 
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_int_distribution<> distrib(0, (numberOfPasswords) - 1);
-    unsigned int randomIndex = distrib(gen) * 8;
+    array<unsigned int, 3> passwordIndexes = {0, numberOfPasswords / 2, numberOfPasswords - 1};
 
-    char *selectedPassword = &passwordsList[randomIndex];
+    for (unsigned int passwordIndex : passwordIndexes) {
 
-    char _selectedPassword[9];
-    for (int i = 0; i < 8; i++)
-        _selectedPassword[i] = selectedPassword[i];
-    _selectedPassword[8] = '\0';
+        char *selectedPassword = &passwordsList[passwordIndex * 8];
 
-    printf("Password to be hacked: %s\n", _selectedPassword);
+        char _selectedPassword[9];
+        for (int i = 0; i < 8; i++)
+            _selectedPassword[i] = selectedPassword[i];
+        _selectedPassword[8] = '\0';
 
-    uint64_t passwordKey = *(uint64_t *) _selectedPassword;
-    uint64_t encodedPassword = full_des_encode_block(passwordKey, passwordKey);
 
-    /* START CRACKING */
+        printf("\nPassword to be hacked: %s, with index %d\n\n", _selectedPassword, passwordIndex);
 
+        uint64_t passwordKey = *(uint64_t *) _selectedPassword;
+        uint64_t encodedPassword = full_des_encode_block(passwordKey, passwordKey);
+
+        /* START CRACKING */
+
+        printf("Trying to hack using CPU\n\n");
+        for (int attempt = 0; attempt < 2; attempt++) {
+            printf("Attempt %d of 2\n", attempt + 1);
+            cpuCracking(numberOfPasswords, passwordsList, encodedPassword);
+        }
+
+        printf("\nTrying to hack using GPU\n\n");
+        for (int attempt = 0; attempt < 2; attempt++) {
+            printf("Attempt %d of 2\n", attempt + 1);
+            cudaCracking(numberOfPasswords, passwordsList, encodedPassword);
+        }
+
+    }
+
+    delete[] passwordsList;
+
+    return EXIT_SUCCESS;
+}
+
+void cudaCracking(unsigned int numberOfPasswords, const char *passwordsList, uint64_t encodedPassword) {
     _cudaSetDevice(0);
     cudaMemcpyToSymbol(devEncodedPassword, &encodedPassword, sizeof(uint64_t));
     cudaMemcpyToSymbol(passwordsListSize, &numberOfPasswords, sizeof(unsigned int));
@@ -97,12 +123,33 @@ int main(int argc, char **argv) {
     cudaFree(devFoundFlag);
     cudaFree(devResult);
     cudaFree(devPasswordsList);
-    delete[] passwordsList;
 
     float seconds = (float) (end - start) / CLOCKS_PER_SEC;
-    printf("Found password: %s in %f seconds\n"
-           "Total number of passwords were: %d\n"
-           "Cracked password had index: %d", foundPassword, seconds, numberOfPasswords, randomIndex / 8);
+    printf("Found password: %s in %f seconds\n", foundPassword, seconds);
+}
 
-    return EXIT_SUCCESS;
+void cpuCracking(unsigned int numberOfPasswords, const char *passwordsList, uint64_t encodedPassword) {
+    uint64_t encodedCrackedKey = 0;
+    char crackedPassword[8];
+
+    clock_t start = clock();
+
+    for (unsigned int index = 0; index < numberOfPasswords && encodedCrackedKey != encodedPassword; index++) {
+        for (int i = 0; i < 8; i++)
+            crackedPassword[i] = passwordsList[8 * index + i];
+
+        uint64_t crackedKey = *(uint64_t *) crackedPassword;
+        encodedCrackedKey = full_des_encode_block(crackedKey, crackedKey);
+    }
+
+    clock_t end = clock();
+
+    char foundPassword[9];
+    for (int i = 0; i < 8; i++)
+        foundPassword[i] = crackedPassword[i];
+    foundPassword[8] = '\0';
+
+    float seconds = (float) (end - start) / CLOCKS_PER_SEC;
+    printf("Found password: %s in %f seconds\n", foundPassword, seconds);
+
 }
