@@ -45,7 +45,7 @@ __global__ void cudaHackPassword(const char *passwordsList, int *foundFlag, char
                 result[currChar] = crackedPassword[currChar];
             printf("Found %s!\n", result);
         }
-        __threadfence();
+        __threadfence(); // halt the current thread until all previous writes to foundFlag are visible by other threads
 
         (currentIndex + gridDim.x * blockDim.x) >= passwordsListSize ? reachedLimit = true : currentIndex += gridDim.x *
                                                                                                              blockDim.x;

@@ -34,13 +34,17 @@ void usage(char *name) {
 
 int main(int argc, char **argv) {
 
-    unsigned int numberOfPasswords = 1 << 27;
+    int key_length;
+    parse_args(argc, argv, &key_length);
+
+    /* PASSWORDS GENERATION */
+
+    unsigned int numberOfPasswords = 1 << 27; // 2^27
 
     char *passwordsList = new char[8 * numberOfPasswords];
     generatePasswords(numberOfPasswords, passwordsList);
 
-    int key_length;
-    parse_args(argc, argv, &key_length);
+    /* PASSWORD SELECTION */
 
     random_device rd;
     mt19937 gen(rd());
@@ -60,6 +64,7 @@ int main(int argc, char **argv) {
     uint64_t encodedPassword = full_des_encode_block(passwordKey, passwordKey);
 
     /* START CRACKING */
+
     _cudaSetDevice(0);
     cudaMemcpyToSymbol(devEncodedPassword, &encodedPassword, sizeof(uint64_t));
     cudaMemcpyToSymbol(passwordsListSize, &numberOfPasswords, sizeof(unsigned int));
@@ -75,8 +80,8 @@ int main(int argc, char **argv) {
     char *devResult;
     _cudaMalloc((void **) &devResult, 9 * sizeof(char));
 
-    dim3 dimGrid = 1 << 7; //2^7
-    dim3 dimBlock = 1 << 9; //2^9
+    dim3 dimGrid = 1 << 7; // 2^7
+    dim3 dimBlock = 1 << 9; // 2^9
 
     clock_t start = clock();
 
