@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include <cstdio>
-#include <string>
 #include <random>
 
 #include "des.h"
@@ -42,6 +41,7 @@ void hackPassword(uint64_t encodedPassword, const char *passwordsList, unsigned 
 
     for (int currChar = 0; currChar < 8; currChar++)
         result[currChar] = crackedPassword[currChar];
+
     printf("Found %s!\n", result);
 
 }
@@ -49,13 +49,17 @@ void hackPassword(uint64_t encodedPassword, const char *passwordsList, unsigned 
 
 int main(int argc, char **argv) {
 
-    unsigned int numberOfPasswords = 1 << 10;
+    int key_length;
+    parse_args(argc, argv, &key_length);
+
+    /* PASSWORDS GENERATION */
+
+    unsigned int numberOfPasswords = 1 << 20; // 2^20
 
     char *passwordsList = new char[8 * numberOfPasswords];
     generatePasswords(numberOfPasswords, passwordsList);
 
-    int key_length;
-    parse_args(argc, argv, &key_length);
+    /* PASSWORD SELECTION */
 
     random_device rd;
     mt19937 gen(rd());

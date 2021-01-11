@@ -9,7 +9,6 @@ void generatePasswords(unsigned int numPasswords, char *passwordsArray) {
                         'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
                         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '/'};
 
-
     srand(time(nullptr));
 
     for (unsigned int i = 0; i < numPasswords; i++) {
