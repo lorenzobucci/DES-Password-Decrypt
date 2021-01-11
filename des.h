@@ -7,16 +7,16 @@
 
 // DES algorithm based on http://page.math.tu-berlin.de/~kant/teaching/hess/krypto-ws2006/des.htm
 
-__device__ __host__ void des_create_subkeys(uint64_t key, uint64_t *keys);
+void des_create_subkeys(uint64_t key, uint64_t *keys);
 
-__device__ __host__ uint64_t des_encode_block(uint64_t block, uint64_t *keys);
+uint64_t des_encode_block(uint64_t block, uint64_t *keys);
 
-__device__ __host__ uint64_t f(uint64_t right, uint64_t key);
+uint64_t f(uint64_t right, uint64_t key);
 
-__host__ __device__ uint64_t full_des_encode_block(uint64_t key, uint64_t block);
+uint64_t full_des_encode_block(uint64_t key, uint64_t block);
 
 
-__device__ __host__ void des_create_subkeys(uint64_t key, uint64_t *keys) {
+void des_create_subkeys(uint64_t key, uint64_t *keys) {
     int *PC_1;
     int *SHIFTS;
     int *PC_2;
@@ -55,7 +55,7 @@ __device__ __host__ void des_create_subkeys(uint64_t key, uint64_t *keys) {
     }
 }
 
-__device__ __host__ uint64_t f(uint64_t right, uint64_t key) {
+uint64_t f(uint64_t right, uint64_t key) {
     int *E_BIT;
     int **S;
     int *P;
@@ -97,7 +97,7 @@ __device__ __host__ uint64_t f(uint64_t right, uint64_t key) {
     return p;
 }
 
-__device__ __host__ uint64_t des_encode_block(uint64_t block, uint64_t *keys) {
+uint64_t des_encode_block(uint64_t block, uint64_t *keys) {
     int *IP;
     int *IP_REV;
 #ifdef  __CUDA_ARCH__
@@ -126,7 +126,7 @@ __device__ __host__ uint64_t des_encode_block(uint64_t block, uint64_t *keys) {
     return encoded;
 }
 
-__host__ __device__ uint64_t full_des_encode_block(uint64_t key, uint64_t block) {
+uint64_t full_des_encode_block(uint64_t key, uint64_t block) {
     uint64_t keys[16];
     des_create_subkeys(key, keys);
     return des_encode_block(block, keys);
