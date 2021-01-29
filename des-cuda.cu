@@ -22,7 +22,7 @@ int main() {
 
     /* PASSWORDS GENERATION */
 
-    unsigned int numberOfPasswords = 1 << 22; // 2^20
+    unsigned int numberOfPasswords = 1 << 22; // 2^
 
     printf("Generating %d passwords...\n", numberOfPasswords);
 
